@@ -1,0 +1,22 @@
+import fetch from 'node-fetch';
+
+const API_KEY = 'AIzaSyAIkVzRbi3WXTLHJzNPRcC0U6qZV06rZ6U';
+const PLACE_ID = 'ChIJp7qPU3BZ9EcRdw-7yk3KKWk';
+
+export default async function handler(req, res) {
+  const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${PLACE_ID}&fields=reviews&key=${API_KEY}`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.status !== 'OK') {
+      return res.status(500).json({ error: 'Erreur API Google', details: data.status });
+    }
+
+    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
+    res.status(200).json(data.result.reviews || []);
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur serveur', details: error.message });
+  }
+}
